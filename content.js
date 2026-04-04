@@ -645,7 +645,7 @@
    * @returns {void} 이동 처리 후 종료한다
    */
   function goToListPage() {
-    const url = buildPageUrl('lists');
+    const url = buildPageUrl('lists', { page: null, s_type: null, s_keyword: null, search_head: null });
     if (!url) {
       showToast('갤러리 목록 페이지를 찾지 못했습니다.');
       return;
@@ -659,7 +659,7 @@
    * @returns {void} 이동 처리 후 종료한다
    */
   function goToRecommendPage() {
-    const url = buildPageUrl('lists', { exception_mode: 'recommend' });
+    const url = buildPageUrl('lists', { exception_mode: 'recommend', page: null, s_type: null, s_keyword: null, search_head: null });
     if (!url) {
       showToast('개념글 페이지를 찾지 못했습니다.');
       return;
