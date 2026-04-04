@@ -25,6 +25,16 @@
     KeyS: 'S',
     KeyZ: 'Z',
     KeyX: 'X',
+    Digit1: '1',
+    Digit2: '2',
+    Digit3: '3',
+    Digit4: '4',
+    Digit5: '5',
+    Digit6: '6',
+    Digit7: '7',
+    Digit8: '8',
+    Digit9: '9',
+    Digit0: '0',
   };
 
   const SELECTORS = {
@@ -61,10 +71,14 @@
   const TOAST_DURATION_MS = 1800;
   const TOAST_ID = 'personal-dc-shortcut-toast';
   const STYLE_ID = 'personal-dc-shortcut-style';
+  const USER_INFO_MARKER = 'dc-shortcut-user-badge';
 
   let settings = cloneDefaults();
   let toastTimer = null;
   let navigating = false;
+  let commentObserver = null;
+  let badgePending = false;
+  let pendingBadgeRoots = new Set();
 
   init().catch((error) => {
     console.error('[개인용 DC 갤질 단축키] 초기화 실패:', error);
@@ -78,6 +92,8 @@
   async function init() {
     settings = await loadSettings();
     injectStyle();
+    applyUserInfoBadges();
+    observeCommentBox();
     document.addEventListener('keydown', onKeydown, true);
     chrome.storage.onChanged.addListener(onStorageChanged);
   }
@@ -93,7 +109,16 @@
     if (areaName !== 'local' || !changes[STORAGE_KEY]) {
       return;
     }
+    const previousShowUserInfo = settings.showUserInfo;
     settings = mergeSettings(cloneDefaults(), changes[STORAGE_KEY].newValue);
+    if (previousShowUserInfo === settings.showUserInfo) {
+      return;
+    }
+    if (settings.showUserInfo) {
+      applyUserInfoBadges();
+      return;
+    }
+    removeUserInfoBadges();
   }
 
   /* ─── 설정 로드 ─── */
@@ -101,7 +126,7 @@
   /**
    * 저장소에서 설정을 읽고 기본값과 병합한다.
    *
-   * @returns {Promise<{enabled: boolean, ignoreWhenTyping: boolean, refreshCommentsOnD: boolean, shortcuts: Record<string, boolean>}>} 유효한 구조로 정리된 설정 객체
+   * @returns {Promise<{enabled: boolean, ignoreWhenTyping: boolean, refreshCommentsOnD: boolean, numberNavigation: boolean, showUserInfo: boolean, shortcuts: Record<string, boolean>}>} 유효한 구조로 정리된 설정 객체
    */
   async function loadSettings() {
     try {
@@ -133,7 +158,12 @@
 
     const action = ACTIONS_BY_CODE[event.code];
     if (!action) return;
-    if (!settings.shortcuts[action]) return;
+    const isNumberAction = action >= '0' && action <= '9';
+    if (isNumberAction) {
+      if (!settings.numberNavigation) return;
+    } else {
+      if (!settings.shortcuts[action]) return;
+    }
 
     if (settings.ignoreWhenTyping && isTypingTarget(event.target)) {
       return;
@@ -200,6 +230,20 @@
         return;
       case 'X':
         await goToAdjacentPost('next');
+        return;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        goToNthPost(Number(action));
+        return;
+      case '0':
+        goToNthPost(10);
         return;
       default:
         return;
@@ -303,6 +347,240 @@
     if (el instanceof HTMLElement) return el;
     showToast(errorMessage);
     return null;
+  }
+
+  /* ─── 유저 정보 배지 ─── */
+
+  /**
+   * 문자열을 해시해 HSL hue 값으로 변환한다.
+   *
+   * @param {string} str 색상 키로 사용할 문자열
+   * @returns {number} 0~359 범위의 hue 값
+   */
+  function hashStringToHue(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0xffffffff;
+    }
+    return Math.abs(hash) % 360;
+  }
+
+  /**
+   * IP 또는 uid 문자열에 대응하는 배지 색상을 계산한다.
+   *
+   * @param {string} str 색상 키로 사용할 IP 또는 uid 문자열
+   * @returns {string} 배지 배경색으로 사용할 HSL 문자열
+   */
+  function getUserBadgeColor(str) {
+    const hue = hashStringToHue(str);
+    return 'hsl(' + hue + ', 55%, 40%)';
+  }
+
+  /**
+   * 단일 작성자 요소에 IP/ID 색상 배지를 삽입한다.
+   *
+   * @param {HTMLElement} writer 작성자 정보가 담긴 요소
+   * @returns {void} 배지 적용 후 종료한다
+   */
+  function applyUserInfoBadgeToWriter(writer) {
+    if (writer.querySelector('.' + USER_INFO_MARKER)) return;
+
+    const uid = writer.dataset.uid || '';
+    const ip = writer.dataset.ip || '';
+
+    let text = '';
+    let colorKey = '';
+
+    if (uid) {
+      text = uid;
+      colorKey = uid;
+    } else if (ip) {
+      // 유동닉은 기존 span.ip 텍스트를 숨기고, 같은 내용을 색상 배지로 대체한다.
+      const ipSpan = writer.querySelector('span.ip');
+      if (ipSpan instanceof HTMLElement && ipSpan.parentElement) {
+        const badge = document.createElement('span');
+        badge.className = USER_INFO_MARKER;
+        badge.style.cssText = 'background:' + getUserBadgeColor(ip) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:2px;';
+        badge.textContent = ip;
+        ipSpan.style.display = 'none';
+        ipSpan.parentElement.appendChild(badge);
+      } else {
+        text = ip;
+        colorKey = ip;
+      }
+      if (!text) return;
+    } else {
+      return;
+    }
+
+    const badge = document.createElement('span');
+    const bracket = uid ? ['[', ']'] : ['(', ')'];
+
+    badge.className = USER_INFO_MARKER;
+    badge.style.cssText = 'background:' + getUserBadgeColor(colorKey) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:4px;font-weight:normal;';
+    badge.textContent = bracket[0] + text + bracket[1];
+
+    const nickEl = writer.querySelector('em') || writer.querySelector('.nickname') || writer.querySelector('b');
+    if (nickEl?.parentElement) {
+      nickEl.parentElement.insertBefore(badge, nickEl.nextSibling);
+    } else {
+      writer.appendChild(badge);
+    }
+  }
+
+  /**
+   * 추가된 노드 하위의 작성자 요소에만 배지를 적용한다.
+   *
+   * @param {Iterable<Element>} roots mutation에서 추가된 루트 요소 집합
+   * @returns {void} 신규 작성자 요소 처리 후 종료한다
+   */
+  function applyUserInfoBadgesToAddedNodes(roots) {
+    if (!settings.showUserInfo) return;
+
+    for (const root of roots) {
+      if (!(root instanceof Element) || root.classList.contains(USER_INFO_MARKER)) {
+        continue;
+      }
+
+      if (root.matches('.comment_box, .view_comment')) {
+        applyUserInfoBadges();
+        return;
+      }
+
+      if (root.matches('.gall_writer[data-nick]')) {
+        applyUserInfoBadgeToWriter(root);
+      }
+
+      const writers = root.querySelectorAll('.gall_writer[data-nick]');
+      for (const writer of writers) {
+        if (writer instanceof HTMLElement) {
+          applyUserInfoBadgeToWriter(writer);
+        }
+      }
+    }
+  }
+
+  /**
+   * 작성자 정보가 담긴 요소들에 IP/ID 색상 배지를 삽입한다.
+   *
+   * @returns {void} 현재 문서의 작성자 요소를 순회한 뒤 종료한다
+   */
+  function applyUserInfoBadges() {
+    if (!settings.showUserInfo) return;
+
+    const writers = document.querySelectorAll('.gall_writer[data-nick]');
+    for (const writer of writers) {
+      if (writer.querySelector('.' + USER_INFO_MARKER)) continue;
+
+      const uid = writer.dataset.uid || '';
+      const ip = writer.dataset.ip || '';
+
+      let text = '';
+      let colorKey = '';
+
+      if (uid) {
+        text = uid;
+        colorKey = uid;
+      } else if (ip) {
+        // 유동닉은 기존 span.ip 텍스트를 숨기고, 같은 내용을 색상 배지로 대체한다.
+        const ipSpan = writer.querySelector('span.ip');
+        if (ipSpan instanceof HTMLElement && ipSpan.parentElement) {
+          const badge = document.createElement('span');
+          badge.className = USER_INFO_MARKER;
+          badge.style.cssText = 'background:' + getUserBadgeColor(ip) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:2px;';
+          badge.textContent = ip;
+          ipSpan.style.display = 'none';
+          ipSpan.parentElement.appendChild(badge);
+        } else {
+          text = ip;
+          colorKey = ip;
+        }
+        if (!text) continue;
+      } else {
+        continue;
+      }
+
+      const badge = document.createElement('span');
+      const bracket = uid ? ['[', ']'] : ['(', ')'];
+
+      badge.className = USER_INFO_MARKER;
+      badge.style.cssText = 'background:' + getUserBadgeColor(colorKey) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:4px;font-weight:normal;';
+      badge.textContent = bracket[0] + text + bracket[1];
+
+      const nickEl = writer.querySelector('em') || writer.querySelector('.nickname') || writer.querySelector('b');
+      if (nickEl?.parentElement) {
+        nickEl.parentElement.insertBefore(badge, nickEl.nextSibling);
+      } else {
+        writer.appendChild(badge);
+      }
+    }
+  }
+
+  /**
+   * 삽입한 유저 정보 배지를 제거하고 숨겨 둔 기존 IP 표시를 복구한다.
+   *
+   * @returns {void} 문서 내 모든 유저 배지를 정리한 뒤 종료한다
+   */
+  function removeUserInfoBadges() {
+    const badges = document.querySelectorAll('.' + USER_INFO_MARKER);
+    for (const badge of badges) {
+      badge.remove();
+    }
+
+    const writers = document.querySelectorAll('.gall_writer[data-nick]');
+    for (const writer of writers) {
+      const ipSpan = writer.querySelector('span.ip');
+      if (ipSpan instanceof HTMLElement) {
+        ipSpan.style.removeProperty('display');
+      }
+    }
+  }
+
+  /**
+   * 댓글 영역의 동적 갱신에 맞춰 유저 정보 배지를 다시 적용한다.
+   *
+   * @returns {void} 옵저버 등록 후 종료한다
+   */
+  function observeCommentBox() {
+    if (commentObserver) {
+      return;
+    }
+
+    const root = document.querySelector('.view_comment') || document.body;
+
+    commentObserver = new MutationObserver((mutations) => {
+      let hasRelevantChange = false;
+
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof Element)) {
+            continue;
+          }
+          if (node.classList.contains(USER_INFO_MARKER)) {
+            continue;
+          }
+          if (!node.matches('.comment_box, .view_comment, .gall_writer[data-nick]') && !node.querySelector('.comment_box, .gall_writer[data-nick]')) {
+            continue;
+          }
+
+          pendingBadgeRoots.add(node);
+          hasRelevantChange = true;
+        }
+      }
+
+      if (!hasRelevantChange || badgePending) {
+        return;
+      }
+
+      badgePending = true;
+      requestAnimationFrame(() => {
+        const targets = pendingBadgeRoots;
+        pendingBadgeRoots = new Set();
+        applyUserInfoBadgesToAddedNodes(targets);
+        badgePending = false;
+      });
+    });
+    commentObserver.observe(root, { childList: true, subtree: true });
   }
 
   /* ─── 단축키 액션: 글쓰기, 댓글 ─── */
@@ -609,6 +887,28 @@
     }
 
     return links;
+  }
+
+  /**
+   * 현재 목록에서 N번째 유효 게시글로 이동한다.
+   *
+   * @param {number} n 이동할 게시글 순번
+   * @returns {void} 이동 처리 후 종료한다
+   */
+  function goToNthPost(n) {
+    const rows = document.querySelectorAll('table.gall_list tbody tr');
+    const validRows = Array.from(rows).filter(isValidPostRow);
+    const targetRow = validRows[n - 1];
+    if (!targetRow) {
+      showToast(n + '번째 글이 없습니다.');
+      return;
+    }
+    const link = targetRow.querySelector('td.gall_tit a:first-child');
+    if (link instanceof HTMLAnchorElement && link.href) {
+      location.href = link.href;
+      return;
+    }
+    showToast(n + '번째 글이 없습니다.');
   }
 
   /**

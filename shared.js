@@ -5,7 +5,7 @@
  * @typedef {Record<string, boolean>} ShortcutMap
  */
 /**
- * @typedef {{enabled: boolean, ignoreWhenTyping: boolean, refreshCommentsOnD: boolean, shortcuts: ShortcutMap}} ShortcutSettings
+ * @typedef {{enabled: boolean, ignoreWhenTyping: boolean, refreshCommentsOnD: boolean, numberNavigation: boolean, showUserInfo: boolean, shortcuts: ShortcutMap}} ShortcutSettings
  */
 (() => {
   'use strict';
@@ -16,6 +16,8 @@
     enabled: true,
     ignoreWhenTyping: true,
     refreshCommentsOnD: true,
+    numberNavigation: true,
+    showUserInfo: true,
     shortcuts: Object.freeze({
       W: true,
       C: true,
@@ -60,6 +62,14 @@
       typeof source.refreshCommentsOnD === 'boolean'
         ? source.refreshCommentsOnD
         : base.refreshCommentsOnD;
+    result.numberNavigation =
+      typeof source.numberNavigation === 'boolean'
+        ? source.numberNavigation
+        : base.numberNavigation;
+    result.showUserInfo =
+      typeof source.showUserInfo === 'boolean'
+        ? source.showUserInfo
+        : base.showUserInfo;
 
     // 단축키 맵도 기본 키 집합을 기준으로 덮어써서, 누락된 키나 예기치 않은 키가 섞여 들어와도 기본값을 보호한다.
     result.shortcuts = { ...base.shortcuts };

@@ -18,6 +18,8 @@
     enabled: document.getElementById('enabled'),
     ignoreWhenTyping: document.getElementById('ignoreWhenTyping'),
     refreshCommentsOnD: document.getElementById('refreshCommentsOnD'),
+    numberNavigation: document.getElementById('numberNavigation'),
+    showUserInfo: document.getElementById('showUserInfo'),
     shortcutInputs: Array.from(document.querySelectorAll('[data-shortcut]')),
     reset: document.getElementById('reset'),
     status: document.getElementById('status'),
@@ -45,7 +47,7 @@
   /**
    * 저장된 설정을 읽어 기본 구조와 병합한다.
    *
-   * @returns {Promise<{enabled: boolean, ignoreWhenTyping: boolean, refreshCommentsOnD: boolean, shortcuts: Record<string, boolean>}>} 유효한 설정 객체
+   * @returns {Promise<{enabled: boolean, ignoreWhenTyping: boolean, refreshCommentsOnD: boolean, numberNavigation: boolean, showUserInfo: boolean, shortcuts: Record<string, boolean>}>} 유효한 설정 객체
    */
   async function loadSettings() {
     try {
@@ -81,6 +83,8 @@
     formElements.enabled.checked = !!state.enabled;
     formElements.ignoreWhenTyping.checked = !!state.ignoreWhenTyping;
     formElements.refreshCommentsOnD.checked = !!state.refreshCommentsOnD;
+    formElements.numberNavigation.checked = !!state.numberNavigation;
+    formElements.showUserInfo.checked = !!state.showUserInfo;
 
     for (const input of formElements.shortcutInputs) {
       const key = input.dataset.shortcut;
@@ -95,7 +99,7 @@
    */
   function bindEvents() {
     // 최상위 boolean 옵션들: element ID와 state 키가 동일한 점을 활용해 공통 핸들러로 처리
-    const booleanOptions = ['enabled', 'ignoreWhenTyping', 'refreshCommentsOnD'];
+    const booleanOptions = ['enabled', 'ignoreWhenTyping', 'refreshCommentsOnD', 'numberNavigation', 'showUserInfo'];
     for (const key of booleanOptions) {
       formElements[key].addEventListener('change', async () => {
         state[key] = formElements[key].checked;
