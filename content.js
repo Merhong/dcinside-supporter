@@ -373,7 +373,7 @@
    */
   function getUserBadgeColor(str) {
     const hue = hashStringToHue(str);
-    return 'hsl(' + hue + ', 55%, 40%)';
+    return 'hsl(' + hue + ', 70%, 35%)';
   }
 
   /**
@@ -400,8 +400,8 @@
       if (ipSpan instanceof HTMLElement && ipSpan.parentElement) {
         const badge = document.createElement('span');
         badge.className = USER_INFO_MARKER;
-        badge.style.cssText = 'background:' + getUserBadgeColor(ip) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:2px;';
-        badge.textContent = ip;
+        badge.style.cssText = 'color:' + getUserBadgeColor(ip) + ';font-size:11px;margin-left:2px;';
+        badge.textContent = '(' + ip + ')';
         ipSpan.style.display = 'none';
         ipSpan.parentElement.appendChild(badge);
       } else {
@@ -414,10 +414,10 @@
     }
 
     const badge = document.createElement('span');
-    const bracket = uid ? ['[', ']'] : ['(', ')'];
+    const bracket = ['(', ')'];
 
     badge.className = USER_INFO_MARKER;
-    badge.style.cssText = 'background:' + getUserBadgeColor(colorKey) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:4px;font-weight:normal;';
+    badge.style.cssText = 'color:' + getUserBadgeColor(colorKey) + ';font-size:11px;margin-left:4px;';
     badge.textContent = bracket[0] + text + bracket[1];
 
     const nickEl = writer.querySelector('em') || writer.querySelector('.nickname') || writer.querySelector('b');
@@ -487,8 +487,8 @@
         if (ipSpan instanceof HTMLElement && ipSpan.parentElement) {
           const badge = document.createElement('span');
           badge.className = USER_INFO_MARKER;
-          badge.style.cssText = 'background:' + getUserBadgeColor(ip) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:2px;';
-          badge.textContent = ip;
+          badge.style.cssText = 'color:' + getUserBadgeColor(ip) + ';font-size:11px;margin-left:2px;';
+          badge.textContent = '(' + ip + ')';
           ipSpan.style.display = 'none';
           ipSpan.parentElement.appendChild(badge);
         } else {
@@ -501,10 +501,10 @@
       }
 
       const badge = document.createElement('span');
-      const bracket = uid ? ['[', ']'] : ['(', ')'];
+      const bracket = ['(', ')'];
 
       badge.className = USER_INFO_MARKER;
-      badge.style.cssText = 'background:' + getUserBadgeColor(colorKey) + ';color:#fff;font-size:11px;border-radius:3px;padding:1px 4px;margin-left:4px;font-weight:normal;';
+      badge.style.cssText = 'color:' + getUserBadgeColor(colorKey) + ';font-size:11px;margin-left:4px;';
       badge.textContent = bracket[0] + text + bracket[1];
 
       const nickEl = writer.querySelector('em') || writer.querySelector('.nickname') || writer.querySelector('b');
