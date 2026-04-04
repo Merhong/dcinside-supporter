@@ -48,7 +48,7 @@
       '.comment_box',
       '.view_comment_wrap',
     ],
-    exceptionPagingWrap: '.bottom_paging_wrap.re, .bottom_paging_wrapre',
+    exceptionPagingWrap: '.bottom_paging_wrap.re',
     pagingWraps: '.bottom_paging_wrap',
     pagingBox: '.bottom_paging_box',
   };
@@ -64,6 +64,7 @@
 
   let settings = cloneDefaults();
   let toastTimer = null;
+  let navigating = false;
 
   init().catch((error) => {
     console.error('[개인용 DC 갤질 단축키] 초기화 실패:', error);
@@ -154,8 +155,11 @@
     if (!(target instanceof HTMLElement)) return false;
     if (target.isContentEditable) return true;
     if (target.closest('[contenteditable="true"]')) return true;
-    if (target.closest('textarea')) return true;
-    if (target.closest('input')) return true;
+    const tagName = target.tagName;
+    if (tagName === 'TEXTAREA' || tagName === 'INPUT' || tagName === 'SELECT') return true;
+    const role = target.getAttribute('role');
+    if (role && ['textbox', 'searchbox', 'combobox', 'spinbutton'].includes(role)) return true;
+    if (target.closest('textarea, input, select, [role="textbox"], [role="searchbox"], [role="combobox"]')) return true;
     return false;
   }
 
@@ -221,15 +225,17 @@
     const galleryId = url.searchParams.get('id') || '';
     const prefix = galleryType === 'board' ? '' : `/${galleryType}`;
 
+    const boardPath = pathname.replace(/^\/(mgallery|mini|person)\//, '/');
+
     return {
       url,
       pathname,
       galleryType,
       galleryId,
       prefix,
-      isViewPage: pathname.includes('/view/'),
-      isListPage: pathname.includes('/lists/'),
-      isWritePage: pathname.includes('/write/'),
+      isViewPage: /\/board\/view\//.test(boardPath),
+      isListPage: /\/board\/lists\//.test(boardPath),
+      isWritePage: /\/board\/write\//.test(boardPath),
     };
   }
 
@@ -244,12 +250,25 @@
     const { galleryId, prefix } = getPageContext();
     if (!galleryId) return null;
 
+    const currentUrl = new URL(location.href);
     const url = new URL(`${location.origin}${prefix}/board/${pageType}/`);
+
+    // 현재 URL에서 의미 있는 파라미터들을 보존
+    const preserveKeys = ['id', 's_type', 's_keyword', 'search_head', 'page'];
+    for (const key of preserveKeys) {
+      const value = currentUrl.searchParams.get(key);
+      if (value) {
+        url.searchParams.set(key, value);
+      }
+    }
+
     url.searchParams.set('id', galleryId);
 
     for (const [key, value] of Object.entries(extraParams)) {
       if (value !== undefined && value !== null && value !== '') {
         url.searchParams.set(key, String(value));
+      } else {
+        url.searchParams.delete(key);
       }
     }
 
@@ -384,8 +403,10 @@
     if (exceptionWrap) {
       return exceptionWrap.querySelector(SELECTORS.pagingBox);
     }
-    const wraps = document.querySelectorAll(SELECTORS.pagingWraps);
-    const targetWrap = wraps.length > 1 ? wraps[1] : wraps[0];
+    // 댓글 페이저(.cmt_paging 내부)를 제외하고, 게시글 목록 하단 페이징만 선택한다.
+    const wraps = Array.from(document.querySelectorAll(SELECTORS.pagingWraps))
+      .filter((wrap) => !wrap.closest('.cmt_paging, .comment_paging, .view_comment_wrap'));
+    const targetWrap = wraps.length > 1 ? wraps[1] : wraps[0] || null;
     return targetWrap?.querySelector(SELECTORS.pagingBox) || null;
   }
 
@@ -597,10 +618,12 @@
    * @returns {Promise<void>} 이동 처리 완료 시 resolve되는 Promise
    */
   async function goToAdjacentPost(direction) {
+    if (navigating) return;
+    navigating = true;
+
     const currentRow = findCurrentPostRow();
     const step = direction === 'prev' ? 'previousElementSibling' : 'nextElementSibling';
     const boundaryMessage = BOUNDARY_MESSAGES.post[direction];
-    const loadingErrorMessage = '게시글 이동 중 오류가 발생했습니다.';
 
     if (currentRow) {
       let row = currentRow[step];
@@ -619,6 +642,7 @@
 
     const pageLink = findPaginationLink(direction === 'prev' ? 'prev' : 'next');
     if (!(pageLink instanceof HTMLAnchorElement) || !pageLink.href) {
+      navigating = false;
       showToast(boundaryMessage);
       return;
     }
@@ -630,14 +654,19 @@
       const targetLink = direction === 'prev' ? validLinks[validLinks.length - 1] : validLinks[0];
 
       if (!targetLink) {
+        navigating = false;
         showToast(boundaryMessage);
         return;
       }
 
       location.href = targetLink;
     } catch (error) {
+      navigating = false;
       console.error('[개인용 DC 갤질 단축키] 인접 글 이동 실패:', error);
-      showToast(loadingErrorMessage);
+      const msg = error.message?.startsWith('HTTP ')
+        ? '페이지를 불러올 수 없습니다.'
+        : '게시글 이동 중 오류가 발생했습니다.';
+      showToast(msg);
     }
   }
 

@@ -82,20 +82,7 @@
    * @returns {Promise<Object<string, *>>} 조회 결과 객체
    */
   function storageGet(key) {
-    return new Promise((resolve, reject) => {
-      try {
-        chrome.storage.local.get(key, (result) => {
-          const error = chrome.runtime?.lastError;
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve(result);
-        });
-      } catch (error) {
-        reject(error);
-      }
-    });
+    return chrome.storage.local.get(key);
   }
 
   /**
@@ -105,20 +92,7 @@
    * @returns {Promise<void>} 저장 완료 시 resolve되는 Promise
    */
   function storageSet(value) {
-    return new Promise((resolve, reject) => {
-      try {
-        chrome.storage.local.set(value, () => {
-          const error = chrome.runtime?.lastError;
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve();
-        });
-      } catch (error) {
-        reject(error);
-      }
-    });
+    return chrome.storage.local.set(value);
   }
 
   window.DCGSShared = {
