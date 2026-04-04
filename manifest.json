@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "개인용 DC 갤질 단축키",
+  "version": "0.1.0",
+  "description": "디시인사이드에서 글쓰기, 댓글 포커스, 페이지 이동, 이전/다음 글 이동 단축키만 제공하는 개인용 확장 프로그램",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://gall.dcinside.com/*"],
+      "js": ["shared.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
