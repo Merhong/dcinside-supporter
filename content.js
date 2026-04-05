@@ -80,6 +80,9 @@
   let badgePending = false;
   let pendingBadgeRoots = new Set();
 
+  // keydown 리스너를 동기적으로 먼저 등록해 settings 로드 중에도 키 입력을 받을 수 있게 한다.
+  document.addEventListener('keydown', onKeydown, true);
+
   init().catch((error) => {
     console.error('[개인용 DC 갤질 단축키] 초기화 실패:', error);
   });
@@ -94,7 +97,6 @@
     injectStyle();
     applyUserInfoBadges();
     observeCommentBox();
-    document.addEventListener('keydown', onKeydown, true);
     chrome.storage.onChanged.addListener(onStorageChanged);
   }
 
