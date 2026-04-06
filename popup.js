@@ -6,7 +6,7 @@
 
   const shared = window.DCGSShared;
   if (!shared) {
-    console.error('[개인용 DC 갤질 단축키] shared.js 로딩 실패');
+    console.error('[개인용 DC 단축키] shared.js 로딩 실패');
     return;
   }
 
@@ -29,7 +29,7 @@
   let statusTimer = null;
 
   init().catch((error) => {
-    console.error('[개인용 DC 갤질 단축키] 팝업 초기화 실패:', error);
+    console.error('[개인용 DC 단축키] 팝업 초기화 실패:', error);
     showStatus('설정 로드 실패');
   });
 
@@ -54,7 +54,7 @@
       const result = await storageGet(STORAGE_KEY);
       return mergeSettings(cloneDefaults(), result?.[STORAGE_KEY]);
     } catch (error) {
-      console.warn('[개인용 DC 갤질 단축키] 설정 로드 실패. 기본값 사용:', error);
+      console.warn('[개인용 DC 단축키] 설정 로드 실패. 기본값 사용:', error);
       return cloneDefaults();
     }
   }
@@ -69,7 +69,7 @@
       await storageSet({ [STORAGE_KEY]: state });
       showStatus('저장됨');
     } catch (error) {
-      console.error('[개인용 DC 갤질 단축키] 설정 저장 실패:', error);
+      console.error('[개인용 DC 단축키] 설정 저장 실패:', error);
       showStatus('저장 실패');
     }
   }

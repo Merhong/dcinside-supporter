@@ -8,7 +8,7 @@
 
   const shared = window.DCGSShared;
   if (!shared) {
-    console.error('[개인용 DC 갤질 단축키] shared.js 로딩 실패');
+    console.error('[개인용 DC 단축키] shared.js 로딩 실패');
     return;
   }
 
@@ -85,7 +85,7 @@
 
 
   init().catch((error) => {
-    console.error('[개인용 DC 갤질 단축키] 초기화 실패:', error);
+    console.error('[개인용 DC 단축키] 초기화 실패:', error);
   });
 
   /**
@@ -136,7 +136,7 @@
       const result = await storageGet(STORAGE_KEY);
       return mergeSettings(cloneDefaults(), result?.[STORAGE_KEY]);
     } catch (error) {
-      console.warn('[개인용 DC 갤질 단축키] 설정 로드 실패. 기본값 사용:', error);
+      console.warn('[개인용 DC 단축키] 설정 로드 실패. 기본값 사용:', error);
       return cloneDefaults();
     }
   }
@@ -964,7 +964,7 @@
       location.href = targetLink;
     } catch (error) {
       navigating = false;
-      console.error('[개인용 DC 갤질 단축키] 인접 글 이동 실패:', error);
+      console.error('[개인용 DC 단축키] 인접 글 이동 실패:', error);
       const msg = error.message?.startsWith('HTTP ')
         ? '페이지를 불러올 수 없습니다.'
         : '게시글 이동 중 오류가 발생했습니다.';
