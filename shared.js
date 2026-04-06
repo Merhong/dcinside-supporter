@@ -21,7 +21,6 @@
     shortcuts: Object.freeze({
       W: true,
       C: true,
-      D: true,
       R: true,
       F: true,
       G: true,

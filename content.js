@@ -17,7 +17,6 @@
   const ACTIONS_BY_CODE = {
     KeyW: 'W',
     KeyC: 'C',
-    KeyD: 'D',
     KeyR: 'R',
     KeyF: 'F',
     KeyG: 'G',
@@ -43,12 +42,6 @@
       'a#btn_write.write',
       '.btn_box button.write',
       '.btn_box a.write',
-    ],
-    commentTextarea: [
-      'textarea[id^="memo_"]',
-      '.view_comment textarea',
-      '.comment_box textarea',
-      '.cmt_write_box textarea',
     ],
     commentRefreshButton: ['button.btn_cmt_refresh', '.btn_cmt_refresh'],
     commentAnchor: [
@@ -207,9 +200,6 @@
         openWritePage();
         return;
       case 'C':
-        focusCommentBox();
-        return;
-      case 'D':
         jumpToComments();
         return;
       case 'R':
@@ -610,20 +600,7 @@
   }
 
   /**
-   * 댓글 입력창에 포커스를 맞추고 화면 중앙으로 스크롤한다.
-   *
-   * @returns {void} 포커스 이동 후 종료한다
-   */
-  function focusCommentBox() {
-    const textarea = findOrWarn(SELECTORS.commentTextarea, '댓글 입력창을 찾지 못했습니다.');
-    if (!textarea) return;
-
-    textarea.focus();
-    textarea.scrollIntoView({ behavior: 'auto', block: 'center' });
-  }
-
-  /**
-   * 댓글 영역으로 이동하고 필요하면 댓글 새로고침을 실행한다.
+   * 댓글 영역으로 스크롤하고 필요하면 댓글 새로고침을 실행한다.
    *
    * @returns {void} 스크롤 처리 후 종료한다
    */

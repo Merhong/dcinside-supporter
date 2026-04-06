@@ -42,13 +42,12 @@ popup.js         팝업 설정 로직 — 로드/저장/렌더링
 {
   enabled: boolean,            // 확장 기능 전체 활성화 (기본: true)
   ignoreWhenTyping: boolean,   // 입력 중 단축키 무시 (기본: true)
-  refreshCommentsOnD: boolean, // D 키 댓글 이동 시 새로고침 병행 (기본: true)
+  refreshCommentsOnD: boolean, // C 키 댓글 이동 시 새로고침 병행 (기본: true)
   numberNavigation: boolean,   // 숫자 키(1~0) 글 이동 활성화 (기본: true)
   showUserInfo: boolean,       // 작성자 IP/ID 색상 배지 표시 (기본: true)
   shortcuts: {                 // 개별 단축키 on/off
     W: boolean,  // 글쓰기
-    C: boolean,  // 댓글 입력창 포커스
-    D: boolean,  // 댓글 영역 이동
+    C: boolean,  // 댓글 영역 이동
     R: boolean,  // 새로고침
     F: boolean,  // 전체글 목록
     G: boolean,  // 개념글 목록
@@ -110,8 +109,7 @@ popup.js         팝업 설정 로직 — 로드/저장/렌더링
 | event.code | 액션 | 동작 | 동작 페이지 |
 |------------|------|------|-------------|
 | `KeyW` | W | 글쓰기 페이지로 이동 | 목록, 글보기 |
-| `KeyC` | C | 댓글 입력창에 포커스 | 글보기 |
-| `KeyD` | D | 댓글 영역으로 스크롤 (+ 선택적 새로고침) | 글보기 |
+| `KeyC` | C | 댓글 영역으로 스크롤 (+ 선택적 새로고침) | 글보기 |
 | `KeyR` | R | 페이지 새로고침 (`location.reload()`) | 목록, 글보기 |
 | `KeyF` | F | 전체글 목록으로 이동 | 목록, 글보기 |
 | `KeyG` | G | 개념글 목록으로 이동 | 목록, 글보기 |
@@ -144,14 +142,7 @@ popup.js         팝업 설정 로직 — 로드/저장/렌더링
 3. 못 찾으면 `buildPageUrl('write')`로 URL 생성하여 이동
 4. URL도 생성 불가하면 토스트 표시
 
-### C — 댓글 입력창 포커스
-
-1. 댓글 textarea 탐색:
-   - `textarea[id^="memo_"]`, `.view_comment textarea`, `.comment_box textarea`, `.cmt_write_box textarea`
-2. `.focus()` + `.scrollIntoView({ block: 'center' })`
-3. 못 찾으면 토스트
-
-### D — 댓글 영역 이동
+### C — 댓글 영역 이동
 
 1. `settings.refreshCommentsOnD`가 `true`이면 댓글 새로고침 버튼 클릭
    - `button.btn_cmt_refresh`, `.btn_cmt_refresh`
@@ -256,8 +247,8 @@ pathname 예시:
 
 ### 구조
 
-- **전체 토글:** 확장 기능 활성화, 입력 중 무시, D키 댓글 새로고침, 번호 키 글 이동, 유저 정보 배지 표시
-- **개별 단축키:** W/C/D/R/F/G/A/S/Z/X 각각 체크박스
+- **전체 토글:** 확장 기능 활성화, 입력 중 무시, C키 댓글 새로고침, 번호 키 글 이동, 유저 정보 배지 표시
+- **개별 단축키:** W/C/R/F/G/A/S/Z/X 각각 체크박스
 - **기본값 복원:** 모든 설정을 DEFAULT_SETTINGS로 리셋
 - **상태 표시:** 저장/복원 후 1400ms 동안 상태 메시지 표시
 
