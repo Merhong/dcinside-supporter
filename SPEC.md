@@ -55,6 +55,7 @@ popup.js         팝업 설정 로직 — 로드/저장/렌더링
     S: boolean,  // 다음 페이지
     Z: boolean,  // 이전 글
     X: boolean,  // 다음 글
+    V: boolean,  // 글 목록 영역 이동
   }
 }
 ```
@@ -110,6 +111,7 @@ popup.js         팝업 설정 로직 — 로드/저장/렌더링
 |------------|------|------|-------------|
 | `KeyW` | W | 글쓰기 페이지로 이동 | 목록, 글보기 |
 | `KeyC` | C | 댓글 영역으로 스크롤 (+ 선택적 새로고침) | 글보기 |
+| `KeyV` | V | 글 보기 하단의 글 목록 영역으로 스크롤 | 글보기 |
 | `KeyR` | R | 페이지 새로고침 (`location.reload()`) | 목록, 글보기 |
 | `KeyF` | F | 전체글 목록으로 이동 | 목록, 글보기 |
 | `KeyG` | G | 개념글 목록으로 이동 | 목록, 글보기 |
@@ -148,6 +150,12 @@ popup.js         팝업 설정 로직 — 로드/저장/렌더링
    - `button.btn_cmt_refresh`, `.btn_cmt_refresh`
 2. 댓글 앵커 요소로 스크롤:
    - `.comment_count`, `#comment`, `.view_comment`, `.comment_box`, `.view_comment_wrap`
+
+### V — 글 목록 영역 이동
+
+1. 글 목록 앵커 요소로 스크롤 (`block: 'start'`):
+   - `#bottom_listwrap`, `.gall_listwrap.list`, `table.gall_list`
+2. 찾지 못하면 토스트 (`글 목록 영역을 찾지 못했습니다.`)
 
 ### R — 새로고침
 
