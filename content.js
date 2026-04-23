@@ -24,6 +24,7 @@
     KeyS: 'S',
     KeyZ: 'Z',
     KeyX: 'X',
+    KeyV: 'V',
     Digit1: '1',
     Digit2: '2',
     Digit3: '3',
@@ -50,6 +51,11 @@
       '.view_comment',
       '.comment_box',
       '.view_comment_wrap',
+    ],
+    postListAnchor: [
+      '#bottom_listwrap',
+      '.gall_listwrap.list',
+      'table.gall_list',
     ],
     exceptionPagingWrap: '.bottom_paging_wrap.re',
     pagingWraps: '.bottom_paging_wrap',
@@ -201,6 +207,9 @@
         return;
       case 'C':
         jumpToComments();
+        return;
+      case 'V':
+        jumpToPostList();
         return;
       case 'R':
         location.reload();
@@ -616,6 +625,18 @@
     if (!anchor) return;
 
     anchor.scrollIntoView({ behavior: 'auto', block: 'center' });
+  }
+
+  /**
+   * 글 보기 페이지 하단의 글 목록 영역으로 스크롤한다.
+   *
+   * @returns {void} 스크롤 처리 후 종료한다
+   */
+  function jumpToPostList() {
+    const anchor = findOrWarn(SELECTORS.postListAnchor, '글 목록 영역을 찾지 못했습니다.');
+    if (!anchor) return;
+
+    anchor.scrollIntoView({ behavior: 'auto', block: 'start' });
   }
 
   /**

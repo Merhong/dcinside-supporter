@@ -28,6 +28,7 @@
       S: true,
       Z: true,
       X: true,
+      V: true,
     }),
   });
 
